@@ -1,0 +1,327 @@
+lesson 1:
+use EDA, data engineering and statistics to improve admissions process at WQU
+use EDA to get a better sense of who the applicants are, where they are from, their age and education level, then create a web application.
+
+Goals:
+extract and transform applicant demographic information using PyMongo
+Enrich demographic information using open-source library
+create a chloropleth map to visualize nationality
+build a sorting function to visualize education level.
+
+important terms:
+object: everything in python is an object. they are constructed from classes
+object type: every object has a type
+class: think of it as a blueprint. it’s the set of instructions given to python to build objects
+
+CONNECT
+the DS Lab student data is stored in a MongoDB database. 
+PrettyPrinter will help print the results in a way that is human readable. but first it was instantiated.
+
+afterwards a database client needs to be connected to the database running at localhost. 
+The list of databases available on client need to be inspected to see which i am interested in
+the database from client is selected then the collection of the data is assigned to a variable.
+
+EXPLORE
+
+Nationality
+
+the first thing to do is count the number of documents in the collection (i.e. the number of rows in the table).
+
+the documents were examined to see the structure. Each document is semi-structured.
+
+in this project, none of the data is real (synthetic data) to protect the privacy of the applicant pool of WQU.
+
+$’s in PyMongo are used in 2 different ways. to the left of the : it i used as an operator/command. to the right of the : it is used as a key identifier.
+
+the data is grouped by country and then counted for every applicant in a country. Then, the id column was renamed to country_iso2 and the count of applicants was sorted in ascending order. 
+
+countries in the country column are represented with 2 letters which is not really informative. so an open-source library, country converter, was used to convert the 2 letter values to the actually country name. This is called data enrichment
+
+afterwards, visualizations around nationality were done. first, using raw counts of countries and then using the normalized versions of the country counts (proportion)
+
+changed the country format to ISO3. i.e. a 4 letter representation of the country name for visualization in plotly. this will allow me to visualize a chloropleth map.
+
+Age
+
+created an aggregation using the ds_app collection. the aggregation was centered on calculating the age of applicants.
+
+A histogram was created to visualize the distribution of ages of the applicants of the ds lab.
+
+Education
+
+grouped the highestDegreeEarned column from the collection and created a count column for each degree type.
+
+Then , put the results into a data frame, renamed the grouping column from _id to highest_degree_earned, set the index to the latter and squeezed the data frame. the last command makes a data frame with one column into a series.
+
+created a function that properly sorts the order of education stages. this was done using a dictionary comprehension and a list comprehension. finally, the index of the education series was sorted using the results from the function.
+
+
+EXTRACT, TRANSFORM, LOAD (ETL) - Lesson 2
+
+the focus is on applicants that create an account on the platform but never take the admissions quiz. the goal is to design an experiment to convince these no-quiz applicants to take the quiz so they can join the program.
+
+Goals
+
+Also, a step will be taken into data engineering. 
+- extract applicant information regarding admissions quiz completion. 
+- design a research question, null hypothesis and alternate hypothesis for our experiment
+- write functions for transforming applicant documents and loading them to database.
+- build a python class to streamline experiment.
+
+Developing the hypothesis
+
+performed a group by and a value count of the status of the admissionsQuiz in the query. then the counts of the 2 groups (complete and incomplete) were assigned to variables.
+
+calculated the proportion of incomplete admissions and discovered a quarter of applicants do not complete the admissions quiz.
+
+stakeholder meeting
+
+there’s a sub-population of applicants that sign up for an account but never take the admissions quiz.
+
+A way to increase quiz completion could be to send email encouragement, also containing requirements and answering questions they may have.
+
+a deliverable would be a file with the names and email addresses of the candidates and probably tag them to follow up with applicants to see if they ended up taking the quiz after receiving the email. the file can be a csv file.
+
+divide all no-quiz applicants into 2 groups. send email to a group and do nothing for the other group. at the end of the experiment see who has taken the quiz and who hasn’t. 
+
+figure out automation to get data, locate no-quiz applicants and export cdv file. run experiment, and then after that see who has taken the quiz or not. then compare. send email campaign daily at the same time everyday because we want to see if emails help. if we sent the email at different times we’d be comparing the times emails are sent.
+
+plan experiment thinking that there will be a small difference to accurately determine statistical significance. this way, if there’s a big difference it will still be captured.
+
+lastly think about how long to run this experiment. like how many days in a row do these emails need to be sent out in order to get enough of these no-quiz applicants to take the quiz
+
+
+Extract: developing the hypothesis
+
+does receiving an email make an applicant more likely to complete a quiz?
+
+a 2 x 2 matrix with treatment and control on the rows, while complete and incomplete are on the column heads.
+
+treatment group: they are treated with the new procedure of  receiving an email.
+control group: they are not getting an email.
+
+complete: they completed the admissions quiz
+incomplete: did not complete the admissions quiz.
+
+every applicant falls into a grid  in this matrix
+
+methodology: every day applicants that created an account the previous day but haven’t taken the admissions quiz will be found. they will then either be assigned to the treatment or control group. then the applicants will be monitored for who completes the quiz.
+
+
+Null hypothesis: there is no relationship between receiving an email and completing the quiz.
+
+alternate hypothesis: there is a relationship between receiving an email and completing the quiz.
+
+Experiment
+
+Everyday we go to the database from the website, look for applicants from the previous day that created an account but did not complete the admissions quiz
+
+created a function that finds all applicants that applied the day prior but did not complete their admissions quiz.
+
+Transform: designing the experiment
+
+divide observations from extracted data into 2 groups: control and treatment group.
+
+methodology:
+- shuffle list of observations
+- find midway point for the list of observations.
+- assign the first half to the control group
+- assign second half to the treatment group.
+	- give each an inExperiment tag
+	- add a group value tag
+	
+
+created a csv file with emails for email campaign. done transformations for applicants in control and treatment group.
+
+Load: Preparing the data
+
+nm
+
+
+LESSON 7.3
+
+Goals:
+
+- do power calculation to determine # of observations to invite into study to detect significant results if it exists.
+- do a cumulative density function to determine experiment length
+- build a contingency table with our experiment results
+- conduct a chi-square test to analyze results
+
+Highlights
+
+- prepare experiment
+	calculate power
+	calculate no-quiz applicants per day
+	calculate no-quiz applicants over 10 days
+- run experiment
+- evaluate results
+	get results from database
+	create crosstab/ contingency table
+	build side-by-side bar chart
+	conduct chi-square test
+
+terms:
+
+prepare experiment
+	effect size (how big a difference do we anticipate seeing between treatment and control group), statistical power (how much power does the experiment have and can it actually detect a significant result or any result at the effect size)
+	mean, standard deviation
+	null and alternate hypothesis
+
+run experiment
+evaluate results
+	fitted values, independence probabilities( what we expect your data to look like if there is no relationship between getting the email and completing the quiz)
+	p - values
+
+
+calculate power (statistical power)
+
+in our case if there is a relationship between sending an email and quiz completion, power is the ability to detect that relationship
+what doe it mean for a difference to be significant? looking for a difference that is big a enough that ups can comfortably say it’s not due to chance.
+before you start an experiment, think about the magnitude of the difference you want to be able to say is statistically significant and based on that effect size you need to make sure there is enough power
+the statistical power in our experiment comes from the number of people we include in the experiment because of we have a large number of applicants we can notice small differences.
+Effect size; how big the difference between the 2 groups that you want to detect.
+small effect size is 0.2, medium is 0.5 and large is 0.8. we will use small effect size to detect small differences. 
+alpha and beta: they both do with the probability of reaching the wrong or incorrect conclusion in the experiment
+alpha is the probability of a false positive when you reject the null hypothesis when in fact it is actually true. in most experiments alpha is set to 0.05. this would be concluding emails do increase quiz completion when in reality they not. giving ourselves a 5% chance of incorrectly rejecting the null hypothesis
+beta is the probability of not getting a false negative. accepting a null hypothesis when it really is true.  this would be concluding emails do not complete quiz completion when in reality they actually do.in most experiments you set beta to 0.8 which means there is a 20% chance that we incorrectly accept the null hypothesis
+
+
+important points
+- if there is a difference between treatment and control groups we want to be able to determine if that difference is due to chance or not (statistical power)
+- if we want to be able to detect a big difference of effect size we do not need a lot of power which means less observations
+- to calculate number of observations in our experiment, we need 3 numbers: effect size, alpha and beta. since we want to detect small changes we will use that as 0.2, alpha is set to 0.05 and beta is set to 0.8.
+
+when calculating group size and total observations it is a good idea to round up because you want to get as much power as possible.
+
+
+
+power plot
+
+
+stats models doesn’t like lists, it prefers numpy arrays,
+arguments:
+dependent variable: variables to plot along the x-axis. the number of observations
+nobs: values of the number of observations
+effect_size
+alpha
+n_bins: how many columns are in the 2x2 table created
+
+each line represents an effect_size that we night want to detect.
+on the y-axis we have power. we did calculations with a power of 0.8 which corresponds to 200 observations.
+
+
+Subjects per day
+
+the next question is how many days does the experiment need to be run to get the total number of applicants calculated earlier (394).
+
+
+10 day probability distribution
+
+we are trying to calculate how many days to run the experiment for to get the 400 observations  that we need to get enough statistical power.
+
+this would be easy if we had the same number of applicants coming everyday. like everyday we get 40 applicants but that is not the case. the number of applicants vary greatly. so the question is how can you estimate the number of observations on a day-to-day basis.
+
+we can figure out how many days to tun the experiment by looking at the distribution of our daily no quiz users. then calculation the mean and standard deviation of that distribution. then using those 2 numbers to create a new distribution for the sum over several days.
+
+we are looking at the distribution over 10 days.
+
+
+Contingency table
+
+to do the chi square test we need to take data from the data frame and put it in a Table2x2 (contingency table)
+
+The fitted values of a contingency table are when there were no relationship between receiving an email and completing the admissions quiz (accepting the null hypothesis).
+
+considering the total number of applicants that completed the admissions quiz, whether they received an email or not, the fitted values would be an even share of this total number. This is because, the null hypothesis is deemed true in this scenario. What the counts would look like if there were no relationship between receiving an email and completing the admissions quiz.
+
+3% of treatment and 3% of control group would complete the quiz. the independence probabilities are the normalized version of the fitted values table from earlier. 
+
+
+Conduct Chi-Square test
+
+we’ve taken the data and loaded it into a contingency table. we’’ve also looked at the fitted values, the number expected to see off there was no relationship between receiving an email and completing the quiz. 
+
+the numbers we got from the experiment are different from the fitted values but are the differences significant enough to reject the null hypothesis? that is the question to answer.
+
+whenever the chance of getting a certain value or higher drops below alpha (0.05) the null hypothesis will be rejected.
+
+the chi-square test doesn’t’t use a normal distribution.
+you can only do a chi-square test with 20 observations or more
+you can only do it when one observation cannot contribute to multiple cells in a contingency table.
+
+
+the chi-square test produces 3 numbers:
+p-value: if the p-value is less than alpha then the null hypothesis will be rejected.
+statistic: measures the difference between what we expect to see and what is actually happening
+degrees of freedom: the number of independent pieces of information you use to base an estimate. for the chi-square test, it is the number of rows-1 * columns-1. 
+
+the main interest is in if the p-value is less than alpha.
+
+based on the results, the p-value is greater than 0.0. it is not a statistically significant result. we cannot reject the null hypothesis. sending an email does not affect whether or not they complete the quiz.
+
+the statistic tells how far off the results are from the norm.
+
+
+
+odds ratio
+
+the odds ratio for the project was 1.4. this means that someone in the treatment group is 1.4 times more likely or 40% more likely to complete the quiz than someone in the control group.
+
+However, since we didn’t have a significant result the number doesn’t mean anything.
+
+
+Dashboard
+
+created visualizations about DS lap applicants. made custom classes to help with ETL processes, ran experiments and analyses results.
+
+combine all of this into interactive web application so anyone can explore this data to conduct their own application.
+
+Goals:
+build web application layout
+incorporate new interactive elements into app
+use custom classes to build visualizations, read from database, perform statistical analysis
+launch application.
+
+build application
+
+application layout
+demographic charts: mongorepositoryclass, dropdown menu, graphbuilderclass
+experiment: effect size slider, experiment duration slider, stats builder class
+results: “star experiment” button, results function, stats builder class
+
+display layer: contain layout of the app, functions for demographic charts, adaptive tests for power calculation, setting up experiment, results
+
+business layer: put 2 custom class(graph builder and stats builder)
+
+database layer: uncharge of all interactions with mongoldb database.
+
+all 3 layers correspond to a module. a .py file in the project.
+
+Lesson 1:
+	- learned how to get data from Mongo database
+	- how to calculate databases
+	- how to truncate databases
+	- how to enrich data using contry converter.
+
+Lesson 2:
+	- learned how to make custom classes.
+	- learned what attributes and methods are
+	- learned about random assignment (spltting group into control and treatment)
+
+Lesson 3:
+	- dove into statistics
+	- learned how to make a contingency table 
+	- learned how to run a chi square test
+
+Lesson 4:
+	- learned how to create interactive web app.
+	- organized the web app into 3 different layers
+		- Database layer:
+			- created a custom mongorepository class to get all the data from mongoDB database
+		- Business layer
+			- graphbuilder: created visualizations
+			- statsbuilder: in charge of doing all statistical tests
+		- Display layer: put together a layot and several functions.
+			- applicant demographic: dropdowm menu with different charts
+			- Experiment : 2 sliders and adaptive text
+			- results : side-by-side bar chart and results of Chi square test.
