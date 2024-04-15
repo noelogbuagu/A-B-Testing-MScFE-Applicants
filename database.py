@@ -7,12 +7,12 @@ from pymongo import MongoClient
 class MongoRepository:
     """For connecting and interacting with MongoDB."""
 
-    def __init__(self, 
-                 client= MongoClient(host="localhost", port=27017), 
-                 db="wqu-abtest", 
-                 collection="ds-applicants"
-                ):
-    
+    def __init__(
+        self,
+        client=MongoClient(host="localhost", port=27017),
+        db="wqu-abtest",
+        collection="ds-applicants"
+    ):
         """init
 
         Parameters
@@ -25,10 +25,8 @@ class MongoRepository:
             By default "ds-applicants"
         """
         self.collection = client[db][collection]
-        
 
     def get_nationality_value_counts(self, normalize=True):
-    
         """Return nationality value counts.
 
         Parameters
@@ -47,32 +45,34 @@ class MongoRepository:
             [
                 {
                     "$group": {
-                        "_id": "$countryISO2", "count":{"$count":{}}
+                        "_id": "$countryISO2", "count": {"$count": {}}
                     }
                 }
             ]
         )
-        
+
         # Store result in DataFrame
         df_nationality = (
-            pd.DataFrame(result).rename({"_id":"country_iso2"}, axis="columns").sort_values("count")
+            pd.DataFrame(result).rename(
+                {"_id": "country_iso2"}, axis="columns").sort_values("count")
         )
         # Add country names and ISO3
         cc = CountryConverter()
-        df_nationality["country_name"] = cc.convert(df_nationality['country_iso2'], to="name_short")
-        df_nationality["country_iso3"] = cc.convert(df_nationality["country_iso2"], to="ISO3")
+        df_nationality["country_name"] = cc.convert(
+            df_nationality['country_iso2'], to="name_short")
+        df_nationality["country_iso3"] = cc.convert(
+            df_nationality["country_iso2"], to="ISO3")
 
         # Transform frequency count to pct
         if normalize:
             df_nationality["count_pct"] = (
-                (df_nationality["count"]/ df_nationality["count"].sum()) * 100
+                (df_nationality["count"] / df_nationality["count"].sum()) * 100
             )
-            
+
         # Return DataFrame
         return df_nationality
 
     def get_ages(self):
-
         """Gets applicants ages from database.
 
         Returns
@@ -83,9 +83,9 @@ class MongoRepository:
         result = self.collection.aggregate(
             [
                 {
-                    "$project":{
-                        "years":{
-                            "$dateDiff":{
+                    "$project": {
+                        "years": {
+                            "$dateDiff": {
                                 "startDate": "$birthday",
                                 "endDate": "$$NOW",
                                 "unit": "year"
@@ -101,7 +101,6 @@ class MongoRepository:
         return ages
 
     def __ed_sort(self, counts):
-
         """Helper function for self.get_ed_value_counts."""
         degrees = [
             "High School or Baccalaureate",
@@ -110,14 +109,11 @@ class MongoRepository:
             "Master's degree",
             "Doctorate (e.g. PhD)",
         ]
-        mapping = {k:v for v,k in enumerate(degrees)}
+        mapping = {k: v for v, k in enumerate(degrees)}
         sort_order = [mapping[c] for c in counts]
         return sort_order
 
-        
-
     def get_ed_value_counts(self, normalize=False):
-
         """Gets value counts of applicant eduction levels.
 
         Parameters
@@ -134,8 +130,8 @@ class MongoRepository:
         result = self.collection.aggregate(
             [
                 {
-                    "$group":{
-                        "_id":"$highestDegreeEarned",
+                    "$group": {
+                        "_id": "$highestDegreeEarned",
                         "count": {"$count": {}}
                     }
                 }
@@ -157,7 +153,6 @@ class MongoRepository:
         return education
 
     def get_no_quiz_per_day(self):
-
         """Calculates number of no-quiz applicants per day.
 
         Returns
@@ -167,11 +162,11 @@ class MongoRepository:
         # Get daily counts from database
         result = self.collection.aggregate(
             [
-                { "$match":{"admissionsQuiz":"incomplete"}},
+                {"$match": {"admissionsQuiz": "incomplete"}},
                 {
-                    "$group":{
-                        "_id":{"$dateTrunc":{"date":"$createdAt", "unit":"day"}},
-                        "count":{"$sum": 1}
+                    "$group": {
+                        "_id": {"$dateTrunc": {"date": "$createdAt", "unit": "day"}},
+                        "count": {"$sum": 1}
                     }
                 }
             ]
@@ -179,7 +174,7 @@ class MongoRepository:
         # Load result into Series
         no_quiz = (
             pd.DataFrame(result)
-            .rename({"_id":"date","count":"new_users"}, axis=1)
+            .rename({"_id": "date", "count": "new_users"}, axis=1)
             .set_index("date")
             .sort_index()
             .squeeze()
@@ -188,7 +183,6 @@ class MongoRepository:
         return no_quiz
 
     def get_contingency_table(self):
-
         """After experiment is run, creates crosstab of experimental groups
         by quiz completion.
 
@@ -198,7 +192,7 @@ class MongoRepository:
             2x2 crosstab
         """
         # Get observations from database
-        result = self.collection.find({"inExperiment":True})
+        result = self.collection.find({"inExperiment": True})
 
         # Load result into DataFrame
         df = pd.DataFrame(result).dropna()

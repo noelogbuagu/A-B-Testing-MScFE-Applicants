@@ -302,16 +302,28 @@ Lesson 1:
 	- how to calculate databases
 	- how to truncate databases
 	- how to enrich data using contry converter.
+	- Extract and transform applicant demographic information using PyMongo.
+	- Enrich demographic information using open-source library.
+	- Create choropleth map to visualise nationality.
+	- build sorting application to visualise applicant education level
 
 Lesson 2:
 	- learned how to make custom classes.
 	- learned what attributes and methods are
 	- learned about random assignment (spltting group into control and treatment)
+	- extract applicant information regarding admissions quiz completion. 
+	- design a research question, null hypothesis and alternate hypothesis for our experiment
+	- write functions for transforming applicant documents and loading them to database.
+	- build a python class to streamline experiment.
 
 Lesson 3:
 	- dove into statistics
 	- learned how to make a contingency table 
 	- learned how to run a chi square test
+	- do power calculation to determine # of observations to invite into study to detect significant results if it exists.
+	- do a cumulative density function to determine experiment length
+	- build a contingency table with our experiment results
+	- conduct a chi-square test to analyze results
 
 Lesson 4:
 	- learned how to create interactive web app.
@@ -325,3 +337,15 @@ Lesson 4:
 			- applicant demographic: dropdowm menu with different charts
 			- Experiment : 2 sliders and adaptive text
 			- results : side-by-side bar chart and results of Chi square test.
+	- build web application layout
+	- incorporate new interactive elements into app
+	- use custom classes to build visualizations, read from database, perform statistical analysis
+	- launch application.
+
+
+Summary:
+	- How they actually use exploratory data analysis, data engineering and statistics to improve admissions process for applied data science lab
+	- extracted information from MongoDB database and created visualisations using plotly express.
+	- Added these visualisations into an interactive web application. 
+
+
